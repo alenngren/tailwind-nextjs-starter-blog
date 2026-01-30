@@ -1,8 +1,13 @@
 # CLAUDE.md - Latent Capital
 
-## Overview
-Personal site: blog, projects, CV for quant/physics career.
-Stack: Next.js 14 (App Router), Tailwind CSS v4, Contentlayer, MDX.
+## Purpose
+Generate interest and leads. Increase surface area for opportunities (quant roles, collaborations, interesting projects). Show by doing — no grand declarations.
+
+## Owner
+Alexander Lenngren — Physics MSc at Chalmers, transitioning to quant finance.
+
+## Stack
+Next.js 14 (App Router), Tailwind CSS v4, Contentlayer, MDX.
 
 ## Key Files
 - `data/siteMetadata.js` — site config (title, description, social links)
@@ -13,19 +18,18 @@ Stack: Next.js 14 (App Router), Tailwind CSS v4, Contentlayer, MDX.
 - `public/static/cv.pdf` — CV file
 
 ## Commands
-- `npm run dev` — dev server (localhost:3000)
-- `npm run build` — production build
-- `npm run serve` — serve production build
+- `yarn dev` — dev server (localhost:3000)
+- `yarn build` — production build
 
 ## Adding Content
 
 ### Blog Posts
-Add `.mdx` files to `data/blog/`. Frontmatter format:
+Add `.mdx` to `data/blog/`:
 ```yaml
 ---
 title: 'Post Title'
-date: '2024-01-15'
-tags: ['tag1', 'tag2']
+date: '2026-01-30'
+tags: ['tag1']
 draft: false
 summary: 'Brief summary'
 ---
@@ -37,18 +41,19 @@ Edit `data/projectsData.ts`:
 { title: 'Name', description: '...', href: '/blog/post-slug', imgSrc: '/static/images/img.png' }
 ```
 
-### About
-Edit `data/authors/default.mdx`
-
 ### CV
 Replace `public/static/cv.pdf`
 
-## Style Guidelines
-- Minimal, professional
-- Physics/quant credible — no cringe
-- No unnecessary features — capability-first
-- Treat everything as an experiment
+## Style
+- Understated, let work speak
+- Physics/quant credible
+- No over-explaining — people understand
+- Minimal, no unnecessary features
 
 ## Deployment
-Vercel auto-deploys from main branch.
+Vercel auto-deploys on push to GitHub.
 URL: https://latent-capital-git-vercel-react-serv-dc617f-alenngrens-projects.vercel.app
+Repo: https://github.com/alenngren/tailwind-nextjs-starter-blog
+
+## Git
+Push requires SSH key (not configured in Claude's env). User pushes manually: `git push`
