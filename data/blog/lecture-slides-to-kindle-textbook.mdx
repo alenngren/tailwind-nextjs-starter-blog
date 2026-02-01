@@ -84,18 +84,29 @@ E
 
 Completely unreadable.
 
-### Why Kindle Fails at Math
+### Why Most Devices Fail at Math
 
-Kindle's rendering engine doesn't support MathML. Neither do most mobile EPUB readers. The EPUB3 spec includes MathML, but the spec and reality diverged years ago.
+MathML is the web standard for mathematical notation in HTML and EPUB. When it works, it's perfect—crisp, scalable, searchable equations. The problem is that most e-reader engines don't actually support it.
+
+I tested on everything I had access to:
+
+| Device/App | MathML Support | Notes |
+|------------|----------------|-------|
+| Calibre | ✅ Perfect | Desktop, uses Qt WebEngine |
+| Google Play Books (PC) | ✅ Perfect | Chrome-based renderer |
+| Kindle Paperwhite | ❌ Scrambled | Equations display vertically |
+| Remarkable 2 | ❌ Broken | No native MathML |
+| Sumatra PDF | ❌ Broken | EPUB support is basic |
+| Okular | ❌ Broken | KDE's viewer, no MathML |
 
 The solutions I tried:
 
 | Approach | Result |
 |----------|--------|
-| MathML | ❌ Scrambled on Kindle |
-| SVG via gladtex | ❌ Equations too small |
+| MathML | ❌ Only works on 2/6 tested readers |
+| SVG via gladtex | ⚠️ Works but inline sizing tricky |
 | PNG via webtex (high DPI) | ❌ Equations comically large |
-| PNG via webtex + CSS | ✅ Finally readable |
+| PNG via webtex + CSS | ✅ Works everywhere |
 
 ### The Working Solution
 
@@ -167,7 +178,7 @@ The Kindle EPUB is larger because it embeds ~300 PNG images (one per equation). 
 
 ## What I Learned
 
-**MathML is a lie.** The spec says EPUB3 supports it. Most readers don't. Always test on actual devices, not just previewers.
+**MathML is the standard, but support is fragmented.** MathML works perfectly on desktop apps like Calibre and Google Play Books. But most e-ink readers and mobile apps don't support it. Always test on actual devices—Kindle Previewer lies.
 
 **CSS can fix a lot.** The difference between "comically large equations" and "readable textbook" was 5 lines of CSS.
 
