@@ -1,0 +1,195 @@
+---
+title: "Lecture Slides to Kindle Textbook"
+date: 2026-02-01
+tags: [productivity, kindle, latex, pandoc, physics]
+summary: "How I built a pipeline to convert physics lecture PDFs into Kindle-readable textbooks with proper math rendering."
+draft: false
+---
+
+## The Problem
+
+I'm a physics MSc student at Chalmers. Every course dumps a semester's worth of lecture slides as PDFs—dense with equations, diagrams, and Swedish-English hybrid notation. Great for projectors, terrible for studying.
+
+My ideal study setup: lying on the couch with my Kindle, reviewing electromagnetic field theory. But PDFs on Kindle are painful—tiny text, no reflow, and you're constantly pinching and zooming.
+
+What I wanted:
+- **Searchable text** (not scanned images)
+- **Proper math rendering** (not garbled symbols)
+- **Readable on Kindle** (reflowable EPUB)
+- **One command to rebuild** when I add notes
+
+## The Pipeline
+
+```
+Lecture PDFs → Mathpix API → Markdown → Pandoc → EPUB/PDF
+```
+
+### Step 1: OCR with Math Recognition
+
+Regular OCR chokes on equations. Mathpix is different—it's trained specifically on scientific documents and outputs clean LaTeX.
+
+```bash
+# Convert all lecture PDFs to Markdown
+python ~/chalmers/convert_lectures.py ./resources/lectures/
+```
+
+Input: `F1_LP3_2026.pdf` (lecture slides with equations)
+Output: `F1_LP3_2026.md` (Markdown with `$\nabla \cdot \mathbf{E} = \frac{\rho}{\varepsilon_0}$`)
+
+Mathpix costs money (5000 pages/month free tier), but it's worth it. The alternative—manually transcribing hundreds of equations—would take forever.
+
+### Step 2: Organize into Chapters
+
+The raw Mathpix output is faithful to the slides, which means it's fragmented. I reorganize into proper textbook chapters:
+
+```
+textbook/
+├── chapter-1-electric-field-potential.md
+├── chapter-2-materials-dielectrics.md
+├── chapter-3-boundaries-capacitance-energy.md
+├── chapter-4-boundary-value-problems.md
+├── chapter-5-currents-ohms-law.md
+└── appendix-exam-prep.md
+```
+
+This is where Claude helps—taking the raw OCR output and restructuring it into coherent explanations with exam tips and practice problems.
+
+### Step 3: Build All Formats
+
+```bash
+./build-textbook.sh
+```
+
+Outputs:
+- `EEN190-textbook.pdf` — LaTeX-quality math, perfect for sharing
+- `EEN190-textbook.epub` — MathML for desktop readers (Calibre, Apple Books)
+- `EEN190-textbook-kindle.epub` — PNG images for Kindle
+
+## The Math Rendering Problem
+
+Here's where I lost a day.
+
+EPUB supports MathML for equations. Desktop readers like Calibre render it beautifully. But Kindle? It displays MathML as scrambled vertical text:
+
+```
+∇
+·
+E
+=
+ρ
+/
+ε
+₀
+```
+
+Completely unreadable.
+
+### Why Kindle Fails at Math
+
+Kindle's rendering engine doesn't support MathML. Neither do most mobile EPUB readers. The EPUB3 spec includes MathML, but the spec and reality diverged years ago.
+
+The solutions I tried:
+
+| Approach | Result |
+|----------|--------|
+| MathML | ❌ Scrambled on Kindle |
+| SVG via gladtex | ❌ Equations too small |
+| PNG via webtex (high DPI) | ❌ Equations comically large |
+| PNG via webtex + CSS | ✅ Finally readable |
+
+### The Working Solution
+
+Pandoc's `--webtex` flag converts LaTeX to PNG images via CodeCogs' API:
+
+```
+$E = mc^2$  →  https://latex.codecogs.com/png.latex?E%20%3D%20mc%5E2  →  <img>
+```
+
+The trick is CSS to scale inline equations to match text height:
+
+```css
+/* Inline math - scale to fit text line */
+img {
+    vertical-align: middle;
+    max-height: 1.5em;
+}
+
+/* Display/block math - full size, centered */
+p > img:only-child {
+    display: block;
+    margin: 0.8em auto;
+    max-height: none;
+}
+```
+
+This gives inline equations like $E = mc^2$ that flow with text, while display equations stay large and centered.
+
+## Two Versions: Concise vs Explanatory
+
+I actually generate two textbook versions:
+
+1. **Standard** — Concise, bullet-pointed, formula-focused
+2. **LDI (Low Density Information)** — Longer sentences, more explanation
+
+The LDI version is based on a friend's suggestion that understanding comes easier with flowing prose than terse bullet points. Same content, different density.
+
+```bash
+./build-textbook.sh      # Concise version
+./build-textbook-ldi.sh  # Explanatory version
+```
+
+## The Build Script
+
+The core of `build-textbook.sh`:
+
+```bash
+# PDF - perfect LaTeX math
+pandoc chapters/*.md --pdf-engine=xelatex -o textbook.pdf
+
+# EPUB with MathML - for desktop readers
+pandoc chapters/*.md --mathml -t epub3 -o textbook.epub
+
+# EPUB with PNG images - for Kindle
+pandoc chapters/*.md --webtex --css=kindle-math.css -t epub3 -o textbook-kindle.epub
+```
+
+Three commands, three formats, all from the same Markdown source.
+
+## Results
+
+| Format | Size | Best For |
+|--------|------|----------|
+| PDF | 130KB | Sharing, printing |
+| EPUB (MathML) | 37KB | Calibre, Apple Books |
+| EPUB (Kindle) | 233KB | Kindle devices |
+
+The Kindle EPUB is larger because it embeds ~300 PNG images (one per equation). But 233KB is nothing—it loads instantly.
+
+## What I Learned
+
+**MathML is a lie.** The spec says EPUB3 supports it. Most readers don't. Always test on actual devices, not just previewers.
+
+**CSS can fix a lot.** The difference between "comically large equations" and "readable textbook" was 5 lines of CSS.
+
+**Automation beats perfection.** The output isn't as pretty as a professionally typeset textbook. But I can rebuild it in 30 seconds when I add notes, fix errors, or want a different format.
+
+**AI + human editing works.** Claude restructured my chapters and added exam tips. I reviewed and corrected. Neither of us could have done it as well alone.
+
+## Replicating This
+
+The full workflow is documented in `~/chalmers/WORKFLOW.md`. For a new course:
+
+```bash
+COURSE=TIF320
+mkdir -p ~/chalmers/$COURSE/{resources/lectures,textbook}
+cp ~/chalmers/een190/build-textbook.sh ~/chalmers/$COURSE/
+# Edit OUTPUT_NAME and TITLE
+# Add lecture PDFs, run Mathpix, create chapters
+./build-textbook.sh
+```
+
+The hardest part is organizing raw OCR into coherent chapters. Everything else is automated.
+
+---
+
+*Tools used: Mathpix API, Pandoc, XeLaTeX, CodeCogs webtex. Running on Arch Linux (WSL2). Course: EEN190 Elektromagnetisk Fältteori at Chalmers.*
