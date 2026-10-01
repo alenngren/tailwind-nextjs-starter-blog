@@ -3409,6 +3409,57 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@redis/bloom@npm:6.3.0":
+  version: 6.3.0
+  resolution: "@redis/bloom@npm:6.3.0"
+  peerDependencies:
+    "@redis/client": ^6.3.0
+  checksum: f8bea4e3811c1f5c858ddb1b6df972fa11d94df4e1d16c5a265748f9a08f90d86efa4c726056a58032f56511ee42a108bc376a3c06712f8ed72620a4bcf706f2
+  languageName: node
+  linkType: hard
+
+"@redis/client@npm:6.3.0":
+  version: 6.3.0
+  resolution: "@redis/client@npm:6.3.0"
+  peerDependencies:
+    "@node-rs/xxhash": ^1.1.0
+    "@opentelemetry/api": ">=1 <2"
+  peerDependenciesMeta:
+    "@node-rs/xxhash":
+      optional: true
+    "@opentelemetry/api":
+      optional: true
+  checksum: 00ef66c4a95e5633816fdb90d0bd5e4a65d29d49184fa3d3a1e0bf41cf22e577f139bdbf39bc115261be5e626c37f34e141e9845c745843fd368850f0a8da47e
+  languageName: node
+  linkType: hard
+
+"@redis/json@npm:6.3.0":
+  version: 6.3.0
+  resolution: "@redis/json@npm:6.3.0"
+  peerDependencies:
+    "@redis/client": ^6.3.0
+  checksum: ff714cff9f84b0f2ce809231a7337d07846e1832e137868a804e7bec77336587ff9f57b5f9a42986d40a96046718acaf5547c47ec8e0575f2c3e5bc4f1fd0788
+  languageName: node
+  linkType: hard
+
+"@redis/search@npm:6.3.0":
+  version: 6.3.0
+  resolution: "@redis/search@npm:6.3.0"
+  peerDependencies:
+    "@redis/client": ^6.3.0
+  checksum: 2a0769c39d84fa9e0e533fbbc1d1d097cd51d0e80a5692a551cbbffd2e9b2c5be78345500cca526fc79420860a75e3c491dadcd31a362ad1b10995fe3fb2a8c5
+  languageName: node
+  linkType: hard
+
+"@redis/time-series@npm:6.3.0":
+  version: 6.3.0
+  resolution: "@redis/time-series@npm:6.3.0"
+  peerDependencies:
+    "@redis/client": ^6.3.0
+  checksum: e7b37e16cdb3f4f00024c022322ec3545d504502ae3e898e98f10f48cb7274bb57a0c3f213b94fe49da67aca0bd4d2a838c986351a607d27bbe6276fbe53b047
+  languageName: node
+  linkType: hard
+
 "@rtsao/scc@npm:^1.1.0":
   version: 1.1.0
   resolution: "@rtsao/scc@npm:1.1.0"
@@ -10191,6 +10242,19 @@ __metadata:
   languageName: node
   linkType: hard
 
+"redis@npm:^6.3.0":
+  version: 6.3.0
+  resolution: "redis@npm:6.3.0"
+  dependencies:
+    "@redis/bloom": 6.3.0
+    "@redis/client": 6.3.0
+    "@redis/json": 6.3.0
+    "@redis/search": 6.3.0
+    "@redis/time-series": 6.3.0
+  checksum: b14c5ac771eb6cd98184d2b86bd3ed0a2f8cdbc128d6dddfe19854cd63429baa025aed0903726bf1dc8e042aed71c04d65a35fe410dedaccdb7353d21c37d04b
+  languageName: node
+  linkType: hard
+
 "reflect.getprototypeof@npm:^1.0.6, reflect.getprototypeof@npm:^1.0.9":
   version: 1.0.10
   resolution: "reflect.getprototypeof@npm:1.0.10"
@@ -11742,6 +11806,7 @@ __metadata:
     react: latest
     react-dom: latest
     reading-time: 1.5.0
+    redis: ^6.3.0
     rehype-autolink-headings: ^7.1.0
     rehype-citation: ^2.3.0
     rehype-katex: ^7.0.0

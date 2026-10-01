@@ -35,8 +35,8 @@ export default async function Dop() {
         </a>
       </p>
       <p className="text-lg leading-7 text-gray-500 dark:text-gray-400">
-        Här är bilderna! Tryck på en bild för att se den i stort format och ladda ner de du gillar
-        i full upplösning.
+        Här är bilderna! Tryck på en bild för att se den i stort format och ladda ner de du gillar i
+        full upplösning.
       </p>
       <p className="text-sm text-gray-500 dark:text-gray-400">
         Vill du ha alla på en gång?{' '}
@@ -49,17 +49,21 @@ export default async function Dop() {
           Ladda ner hela mappen i Google Drive
         </a>
       </p>
-      <Gallery ids={ids} />
-      <p id="kofi" className="scroll-mt-8 pt-8 text-lg leading-7 text-gray-500 dark:text-gray-400">
-        Fotografering är en hobby jag gärna lägger tid på. Om du gillar bilderna får du jättegärna
-        skänka en slant via Ko-fi. Det hjälper mig att utveckla hobbyn och ta ännu bättre bilder
-        nästa gång!
-      </p>
-      <iframe
-        src={`https://ko-fi.com/${KOFI_USERNAME}/?hidefeed=true&widget=true&embed=true&preview=true`}
-        title="Ko-fi"
-        className="h-[712px] w-full rounded-md border-none bg-gray-50 p-1"
-      />
+      <Gallery ids={ids}>
+        <p
+          id="kofi"
+          className="scroll-mt-8 pt-8 text-lg leading-7 text-gray-500 dark:text-gray-400"
+        >
+          Fotografering är en hobby jag gärna lägger tid på. Om du gillar bilderna får du jättegärna
+          skänka en slant via Ko-fi. Det hjälper mig att utveckla hobbyn och ta ännu bättre bilder
+          nästa gång!
+        </p>
+        <iframe
+          src={`https://ko-fi.com/${KOFI_USERNAME}/?hidefeed=true&widget=true&embed=true&preview=true`}
+          title="Ko-fi"
+          className="h-[712px] w-full rounded-md border-none bg-gray-50 p-1"
+        />
+      </Gallery>
       <Analytics />
     </div>
   )
