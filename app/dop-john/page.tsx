@@ -7,7 +7,7 @@ const FOLDER_ID = '1sg5ttrJI8iWJ8j4kdHLDv8sDI99pUK4b'
 const DRIVE_URL = `https://drive.google.com/drive/folders/${FOLDER_ID}`
 const KOFI_USERNAME = 'alexlenng'
 // Link preview (WhatsApp, Messenger etc.), Drive photo cropped to 1200x630
-const PREVIEW_IMAGE = 'https://lh3.googleusercontent.com/d/11jhPpYTNB4tEvGrrfbHg_HYvCPuC4mdo=w1200-h630-c'
+const PREVIEW_IMAGE = 'https://lh3.googleusercontent.com/d/1WLurPB6VO8s5VptP3UsF1Pl_vj-46e6X=w1200-h630-c'
 const TITLE = `Bilder på lilla ${NAME}`
 const DESCRIPTION = 'Bilder från dopet i Tolånga kyrka. Bläddra och ladda ner i full upplösning.'
 
