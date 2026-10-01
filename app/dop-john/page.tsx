@@ -6,10 +6,25 @@ const NAME = 'John Arthur'
 const FOLDER_ID = '1sg5ttrJI8iWJ8j4kdHLDv8sDI99pUK4b'
 const DRIVE_URL = `https://drive.google.com/drive/folders/${FOLDER_ID}`
 const KOFI_USERNAME = 'alexlenng'
+// Link preview (WhatsApp, Messenger etc.), Drive photo cropped to 1200x630
+const PREVIEW_IMAGE = 'https://lh3.googleusercontent.com/d/11jhPpYTNB4tEvGrrfbHg_HYvCPuC4mdo=w1200-h630-c'
+const TITLE = `Bilder på lilla ${NAME}`
+const DESCRIPTION = 'Bilder från dopet i Tolånga kyrka. Bläddra och ladda ner i full upplösning.'
 
+// openGraph/twitter replace the site-wide defaults (Latent Capital title, banner, url)
 export const metadata: Metadata = {
-  title: { absolute: `Bilder på lilla ${NAME}` },
+  title: { absolute: TITLE },
+  description: DESCRIPTION,
   robots: { index: false, follow: false, googleBot: { index: false, follow: false } },
+  openGraph: {
+    title: TITLE,
+    description: DESCRIPTION,
+    images: [{ url: PREVIEW_IMAGE, width: 1200, height: 630 }],
+    locale: 'sv_SE',
+    type: 'website',
+  },
+  twitter: { card: 'summary_large_image', title: TITLE, images: [PREVIEW_IMAGE] },
+  alternates: { canonical: null },
 }
 
 // Re-read folder contents at most hourly, so new photos show up without a redeploy
