@@ -37,7 +37,10 @@ export default function Gallery({ ids, children }: { ids: string[]; children: Re
   }, [])
 
   const counts = new Map<string, number>()
-  labels.forEach((l) => counts.set(l.name, (counts.get(l.name) ?? 0) + 1))
+  // Skip labels on photos since removed from the Drive folder
+  labels
+    .filter((l) => ids.includes(l.id))
+    .forEach((l) => counts.set(l.name, (counts.get(l.name) ?? 0) + 1))
   const names = [...counts.keys()].sort((a, b) => counts.get(b)! - counts.get(a)!)
 
   const shown = filter

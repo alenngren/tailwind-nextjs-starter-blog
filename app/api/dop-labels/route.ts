@@ -24,9 +24,13 @@ export async function GET() {
 
 export async function POST(req: Request) {
   const { action, id, name: rawName } = await req.json()
+  // "  anna-karin  SVENSSON" -> "Anna-Karin Svensson", so names match regardless of case
   const name = String(rawName ?? '')
     .trim()
+    .replace(/\s+/g, ' ')
     .slice(0, 40)
+    .toLocaleLowerCase('sv')
+    .replace(/(^|[\s-])\p{L}/gu, (c) => c.toLocaleUpperCase('sv'))
   if (!name || name.includes('\t')) return NextResponse.json({ error: 'bad name' }, { status: 400 })
   if (action !== 'removeAll' && !/^[\w-]+$/.test(String(id)))
     return NextResponse.json({ error: 'bad id' }, { status: 400 })
