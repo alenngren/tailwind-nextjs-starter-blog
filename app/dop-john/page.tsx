@@ -28,7 +28,12 @@ export default async function Dop() {
       <h1 className="text-3xl leading-9 font-extrabold tracking-tight text-gray-900 sm:text-4xl sm:leading-10 dark:text-gray-100">
         Bilder på lilla {NAME}
       </h1>
-      <p className="text-gray-500 dark:text-gray-400">Foto: Alexander Lenngren</p>
+      <p className="text-gray-500 dark:text-gray-400">
+        Foto: Alexander Lenngren ·{' '}
+        <a href="#kofi" className="text-primary-500 hover:text-primary-600">
+          ☕ Ko-fi
+        </a>
+      </p>
       <p className="text-lg leading-7 text-gray-500 dark:text-gray-400">
         Här är bilderna! Tryck på en bild för att se den i stort format och ladda ner de du gillar
         i full upplösning.
@@ -45,7 +50,7 @@ export default async function Dop() {
         </a>
       </p>
       <Gallery ids={ids} />
-      <p className="pt-8 text-lg leading-7 text-gray-500 dark:text-gray-400">
+      <p id="kofi" className="scroll-mt-8 pt-8 text-lg leading-7 text-gray-500 dark:text-gray-400">
         Fotografering är en hobby jag gärna lägger tid på. Om du gillar bilderna får du jättegärna
         skänka en slant via Ko-fi. Det hjälper mig att utveckla hobbyn och ta ännu bättre bilder
         nästa gång!
