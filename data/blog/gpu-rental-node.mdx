@@ -1,0 +1,190 @@
+---
+title: "From Spare PC to GPU Rental Node"
+date: 2026-01-31
+tags: [gpu, infrastructure, side-project, vast-ai]
+summary: "How I turned a Dell Precision 3650 with an RTX 3090 into a vast.ai rental node, optimized for Swedish electricity pricing."
+draft: false
+---
+
+## The Idea
+
+I recently picked up a used Dell Precision 3650 workstation from Tradera—an i7-11700 with 32GB RAM and an RTX 3090. The original plan was simple: a dedicated machine for computational physics simulations and a sandbox for learning Linux server administration before working with the vera2@Chalmers HPC cluster.
+
+But a 3090 sitting idle felt like waste. 24GB of VRAM and 10,496 CUDA cores burning electricity for nothing. That's when I discovered vast.ai—a marketplace where you can rent out your GPU to researchers, ML engineers, and developers who need compute on demand.
+
+The pitch was compelling:
+- **Learn Linux sysadmin** by actually running a server
+- **Practice HPC workflows** that mirror what I'll use on vera2@Chalmers
+- **Maybe cover electricity costs** (or even profit)
+
+## The Hardware
+
+| Component | Spec |
+|-----------|------|
+| CPU | Intel i7-11700 @ 2.50GHz |
+| RAM | 32GB DDR4 |
+| GPU | NVIDIA GeForce RTX 3090 (24GB GDDR6X) |
+| Storage | 1TB NVMe SSD |
+| Network | Gigabit Ethernet |
+
+The 3090 is the star here—44.1 TFLOPS, PCIe 4.0 x16, and enough VRAM to run serious workloads. It's not a datacenter card, but for a homelab rental node, it's more than capable.
+
+## The Setup Journey
+
+### Dual Boot: Keep Options Open
+
+I wanted to keep Windows available (for gaming, for when friends visit), so dual boot was the plan:
+
+1. Shrink Windows partition to ~200GB
+2. Leave 750GB unallocated for Ubuntu
+3. Install Ubuntu Server 22.04 LTS (headless—no desktop environment)
+
+**Why headless?** Two reasons: it mirrors HPC environments where you SSH into compute nodes, and it saves the ~500MB of VRAM that a desktop compositor would consume. Every megabyte matters when renters are running large models.
+
+### Ubuntu Server Installation
+
+The installation was mostly straightforward, with one gotcha: the Ubuntu installer doesn't show unallocated space as a partition. I had to boot back into Windows, create an NTFS volume from the unallocated space (without assigning a drive letter), then reboot into the Ubuntu installer. It then recognized the partition and let me format it as ext4.
+
+Partition layout:
+- 200MB EFI (shared between Windows and Ubuntu)
+- 202GB Windows (NTFS)
+- 750GB Ubuntu root (ext4)
+- 754MB Windows Recovery
+
+### NVIDIA Drivers + Docker
+
+vast.ai runs workloads in Docker containers with GPU passthrough. The setup:
+
+```bash
+# Install NVIDIA drivers
+sudo apt update && sudo apt upgrade -y
+sudo ubuntu-drivers install nvidia:535-server
+
+# Verify GPU
+nvidia-smi  # Should show your 3090
+
+# Install Docker + NVIDIA Container Toolkit
+curl -fsSL https://get.docker.com | sh
+sudo usermod -aG docker $USER
+
+# NVIDIA Container Toolkit
+curl -fsSL https://nvidia.github.io/libnvidia-container/gpgkey | \
+  sudo gpg --dearmor -o /usr/share/keyrings/nvidia-container-toolkit-keyring.gpg
+curl -s -L https://nvidia.github.io/libnvidia-container/stable/deb/nvidia-container-toolkit.list | \
+  sed 's#deb https://#deb [signed-by=/usr/share/keyrings/nvidia-container-toolkit-keyring.gpg] https://#g' | \
+  sudo tee /etc/apt/sources.list.d/nvidia-container-toolkit.list
+sudo apt update
+sudo apt install -y nvidia-container-toolkit
+sudo nvidia-ctk runtime configure --runtime=docker
+sudo systemctl restart docker
+
+# Test GPU in Docker
+docker run --rm --gpus all nvidia/cuda:12.2.0-base-ubuntu22.04 nvidia-smi
+```
+
+When the test shows your 3090 inside the container, you're ready for vast.ai.
+
+### vast.ai Daemon Installation
+
+This is where things got interesting. vast.ai requires:
+1. A hosting account (separate from client accounts)
+2. Their daemon software running on your machine
+3. Open ports for renters to connect
+
+The install script:
+
+```bash
+wget https://console.vast.ai/install -O install
+sudo python3 install YOUR_AUTH_KEY --interactive
+```
+
+**Gotchas I hit:**
+- **dpkg interrupt:** The installer hung on an apt prompt about overwriting daemon.json. Fix: `sudo dpkg --configure -a` then retry with `--no-docker` flag
+- **XFS partition:** vast.ai wants an XFS partition for Docker storage. Since I used all my disk space, it created a loopback partition (slightly slower, but works)
+- **401 errors on re-run:** The machine was already registered—you can't run the installer twice. Just start the daemon: `sudo systemctl start vastai`
+
+### Port Forwarding
+
+Renters need to connect to your machine. vast.ai recommends opening ports 16384-32768 (TCP+UDP). On my ASUS router:
+
+1. WAN → Virtual Server/Port Forwarding
+2. Add rule: External 16384:32768 → Internal IP 192.168.50.154, Both protocols
+3. Tell the daemon: `sudo bash -c 'echo -n "16384-32768" > /var/lib/vastai_kaalia/host_port_range'`
+
+Verify with netcat on your server (`nc -l -p 16384`) and a port checker website.
+
+## Swedish Electricity Optimization
+
+Here's where it gets interesting for Swedish hosts. We have a unique pricing structure:
+
+### The Effektavgift Problem
+
+Since September 2025, Swedish grid operators charge an **effektavgift** (peak power charge) based on your three highest hourly power draws during weekdays 07:00-19:00, November through March.
+
+My rate: **53.30 kr/kW**
+
+A 3090 under full load pulls ~350W. If GPU rentals during peak hours become one of my top 3 peaks, that's potentially 53.30 × 0.35 = **~18 kr extra** on my monthly bill per peak incident.
+
+### The Strategy
+
+| Time Period | Strategy | Reasoning |
+|-------------|----------|-----------|
+| Off-peak (19:00-07:00) | Full availability, $0.15/hr | Cheap electricity, no effektavgift |
+| Peak (07:00-19:00) weekdays | Higher minimum ($0.25/hr) | Only accept if premium covers costs |
+| Weekends & holidays | Full availability, $0.15/hr | No effektavgift applies |
+
+### Break-Even Math
+
+At my electricity rate (~1 kr/kWh all-in):
+- 3090 at load: 350W = 0.35 kWh/hr = **~0.35 kr/hr (~$0.03)**
+- vast.ai revenue at $0.15/hr = **~1.60 kr/hr**
+- **Margin: ~1.25 kr/hr (~$0.12)**
+
+At 50% utilization, that's roughly **$50-60/month revenue, $35-45 profit** after electricity.
+
+Not retirement money, but it covers the machine's electricity and gives me a free learning platform.
+
+## Future: Tibber API Integration
+
+I use Tibber for electricity, which has an API exposing hourly spot prices. The dream setup:
+
+```
+Tibber API → Check hourly price → If price > threshold → Unlist from vast.ai
+                               → If price < threshold → List on vast.ai
+```
+
+This would automatically avoid expensive hours and maximize profit margins. It's a separate project I'm planning to open-source—stay tuned.
+
+## Current Status
+
+After one day of setup:
+
+- **Machine ID:** 54352
+- **Status:** Listed, unverified
+- **Reliability:** 65% (building up with uptime)
+- **Pricing:** $0.15/hr GPU, $0.15/GB/mo storage
+- **Ports:** 16,385 open
+
+The "unverified" status means I don't show up in default search results yet. Verification is automatic based on uptime, benchmark performance, and reliability over time.
+
+## Lessons Learned
+
+1. **Read the docs fully before starting.** The vast.ai host setup guide is comprehensive but easy to skim past important details.
+
+2. **XFS matters.** If I reinstall, I'll leave unpartitioned space for a proper XFS partition instead of the loopback fallback.
+
+3. **Disable sleep/hibernate.** A sleeping machine kills your reliability score: `sudo systemctl mask sleep.target suspend.target hibernate.target hybrid-sleep.target`
+
+4. **Set up a watchdog.** I created a systemd timer that checks if the daemon is running every 5 minutes and restarts it if needed.
+
+5. **SSH keepalive saves sanity.** Add `ServerAliveInterval 60` to your SSH config to prevent disconnects during long sessions.
+
+## What's Next
+
+The real question isn't whether this makes money—it's whether the learning value justifies the time investment. So far, I've learned more about Linux, Docker, networking, and systemd in one evening than in months of casual use.
+
+If it scales and profits cover upgrades, expanding, and operating costs—that's a great positive. But for now, it's a fun project.
+
+---
+
+*Machine specs: Dell Precision 3650, i7-11700, 32GB RAM, RTX 3090. Running Ubuntu Server 22.04 LTS, vast.ai daemon, Docker with NVIDIA Container Toolkit. Located in Göteborg, Sweden.*
